@@ -1,9 +1,10 @@
 from fastapi import  APIRouter,Depends,HTTPException, status
 from fastapi.security import APIKeyHeader
+from sqlalchemy.orm import Session
+
 from DatabaseConfig.databaseConfig import get_db
 from Schemas import schemas
 from Repository import userRepo
-from sqlalchemy.orm import Session
 from Client import authClient,orderClient
 from Utils import utils
 from MiddleWare import middleware
@@ -17,6 +18,7 @@ router = APIRouter(
 
 @router.post('/register/user')
 def createUser(request: schemas.User, db:Session=Depends(get_db)):
+    print("request received")
     return userRepo.createUser(request, db)
 
 

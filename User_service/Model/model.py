@@ -1,6 +1,9 @@
 from sqlalchemy import Column,Integer,String,ForeignKey,Table
-from DatabaseConfig.databaseConfig import Base
 from sqlalchemy.orm import relationship
+
+# from ..DatabaseConfig.databaseConfig import Base
+from DatabaseConfig.databaseConfig import (Base)
+
 
 # Association table
 user_roles = Table(

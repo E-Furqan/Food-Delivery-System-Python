@@ -1,15 +1,22 @@
 from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+
 from Model import model
 from DatabaseConfig.databaseConfig import engine,get_db
 from Routes import userRoutes
 from Repository import rolesRepo
-from fastapi.openapi.utils import get_openapi
+
 
 
 app = FastAPI()
 
 
 model.Base.metadata.create_all(engine)
+
+
+@app.get("/")
+def read_root():
+    return {"message": "API is working!"}
 
 @app.on_event("startup")
 def on_startup():

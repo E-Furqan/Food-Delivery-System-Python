@@ -1,6 +1,7 @@
-from logging import raiseExceptions
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
+
 from Model import model
 from Schemas import schemas
 from Hashing.hash import Hash
@@ -31,7 +32,6 @@ def createUser(request: schemas.User, db: Session):
     db.commit()
     db.refresh(new_user)
     return new_user
-
 
 def fetchUser(id: int, db: Session):
     user = db.query(model.User).filter(model.User.user_id == id).first()

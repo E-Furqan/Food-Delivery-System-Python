@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from Model import model
-from fastapi import HTTPException, status
 
 def create_default_roles(db: Session):
     default_roles = ["admin", "customer", "deliverydriver"]

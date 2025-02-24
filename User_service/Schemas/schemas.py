@@ -4,25 +4,24 @@ from pydantic import BaseModel
 
 
 class Role(BaseModel):
-    role_id: Optional[int]
-    role_type: str
+    role_id: Optional[int] = 1
+    role_type: Optional[str] ="customer"
 
     class Config:
         orm_mode = True
 
 
-
 class User(BaseModel):
-    user_id: Optional[int]
+    user_id: Optional[int] = 1
     full_name: str
     user_name: str
     email: str
     password: str
-    phoneNumber: int
+    phoneNumber: str
     address: str
     roleStatus: str
     activeRole: str
-    roles: Optional[List[Role]]
+    roles: Optional[List[Role]] = None
 
     class Config:
         orm_mode = True

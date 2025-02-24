@@ -1,6 +1,6 @@
 from fastapi import Request, HTTPException, status
-from functools import wraps
 import jwt
+
 from EnviornmentVariable import enVVar
 
 SECRET_KEY = enVVar.SECRET_KEY
