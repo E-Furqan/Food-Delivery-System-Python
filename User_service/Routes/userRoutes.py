@@ -51,7 +51,7 @@ def refresh_token(request: schemas.refresh_token):
         )
 
 
-@router.delete('/delete/user')
+@router.put('/delete/user')
 def deleteUser(request: schemas.Credentials, db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
     return userRepo.deleteUser(request, db)
 
@@ -60,18 +60,19 @@ def deleteUser(request: schemas.Credentials, db:Session=Depends(get_db), token_p
 def fetchUser(db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
     return userRepo.fetchUser(token_payload['id'], db)
 
-
-
 @router.put(f'/update/order/status',response_model=schemas.User)
-def order_status(request: schemas.order_details,token_payload: dict = Depends(middleware.validate_token)):
-    print("token :",token_payload["token"])
-    order_payload = utils.create_order_payload_obj(request,token_payload['id'])
+def update_order_status(
+    request: schemas.order_details,
+    token_payload: dict = Depends(middleware.validate_token)
+):
+    """Update order status with proper error handling."""
+    order_payload = utils.create_order_payload_obj(request, token_payload['id'])
 
     try:
-        response = orderClient.update_order_status(order_payload,token_payload["token"])
+        response = orderClient.update_order_status(order_payload, token_payload["token"])
         return response
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"error in order service : {e}"
+            detail=f"Error in order service: {str(e)}"
         )

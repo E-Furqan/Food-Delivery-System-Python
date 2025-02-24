@@ -24,4 +24,4 @@ def refresh_token(payload:schemas.refresh_token):
     if response.status_code == 200:
         return response.json()
     else:
-        print("Error:", response.status_code, response.text)
+        raise Exception(f"Error: {response.status_code} {response.text}")

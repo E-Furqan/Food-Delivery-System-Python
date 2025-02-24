@@ -44,17 +44,14 @@ def fetchUser(id: int, db: Session):
     return user
 
 def deleteUser(request: schemas.Credentials, db: Session):
-    # Fetch the user by email
     user = db.query(model.User).filter(model.User.email == request.email).first()
 
-    # If the user doesn't exist, raise an exception
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with the email {request.email} is not available"
         )
 
-    # Verify the password
     if not Hash.verify(user.password, request.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
