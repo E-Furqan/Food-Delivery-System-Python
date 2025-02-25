@@ -2,12 +2,14 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
 
+from Utils import utils
 from Model import model
 from Schemas import schemas
 from Hashing.hash import Hash
+from decorators import track_coverage
 
-
-def createUser(request: schemas.User, db: Session):
+@track_coverage
+async def createUser(request: schemas.User, db: Session):
     role_type = [role.role_type for role in request.roles]
     roles = db.query(model.Role).filter(model.Role.role_type.in_(role_type)).all()
     if len(roles) <= 0:
@@ -33,6 +35,7 @@ def createUser(request: schemas.User, db: Session):
     db.refresh(new_user)
     return new_user
 
+@track_coverage
 def fetchUser(id: int, db: Session):
     user = db.query(model.User).filter(model.User.user_id == id).first()
     if not user:
@@ -43,6 +46,7 @@ def fetchUser(id: int, db: Session):
 
     return user
 
+@track_coverage
 def deleteUser(request: schemas.Credentials, db: Session):
     user = db.query(model.User).filter(model.User.email == request.email).first()
 
@@ -65,7 +69,8 @@ def deleteUser(request: schemas.Credentials, db: Session):
     return {"detail": f"User with email {request.email} has been successfully deleted."}
 
 
-def login(request: schemas.Credentials, db: Session):
+@track_coverage
+async def login(request: schemas.Credentials, db: Session):
     user = db.query(model.User).filter(model.User.email == request.email).first()
 
     # If the user doesn't exist, raise an exception

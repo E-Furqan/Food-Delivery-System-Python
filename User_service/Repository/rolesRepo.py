@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from Model import model
 
-def create_default_roles(db: Session):
+async def create_default_roles(db: Session):
     default_roles = ["admin", "customer", "deliverydriver"]
 
 

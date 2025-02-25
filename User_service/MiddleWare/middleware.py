@@ -3,6 +3,7 @@ import jwt
 
 from EnviornmentVariable import enVVar
 
+
 SECRET_KEY = enVVar.SECRET_KEY
 ALGORITHM = enVVar.ALGORITHM
 
@@ -37,3 +38,4 @@ def validate_token(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"
         )
+

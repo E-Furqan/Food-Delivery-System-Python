@@ -8,6 +8,7 @@ from Repository import userRepo
 from Client import authClient,orderClient
 from Utils import utils
 from MiddleWare import middleware
+from decorators import track_coverage
 
 authorization_scheme = APIKeyHeader(name="Authorization", auto_error=True)
 
@@ -16,14 +17,18 @@ router = APIRouter(
     tags=['Users']
 )
 
-@router.post('/register/user')
-def createUser(request: schemas.User, db:Session=Depends(get_db)):
-    print("request received")
-    return userRepo.createUser(request, db)
 
+
+@router.post('/register/user')
+@track_coverage
+async def createUserEndpoint(request: schemas.User, db: Session = Depends(get_db)):
+    print("request received")
+    result = await userRepo.createUser(request, db)  # Await the async function
+    return result
 
 @router.post('/login')
-def login(request: schemas.Credentials, db:Session=Depends(get_db)):
+@track_coverage
+async def login(request: schemas.Credentials, db:Session=Depends(get_db)):
     user = userRepo.login(request, db)
     payload = utils.create_token_payload_obj(user.user_id, user.activeRole)
 
@@ -37,6 +42,7 @@ def login(request: schemas.Credentials, db:Session=Depends(get_db)):
         )
 
     return
+
 
 @router.post('/refresh/token')
 def refresh_token(request: schemas.refresh_token):

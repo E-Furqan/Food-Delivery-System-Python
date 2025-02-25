@@ -1,15 +1,20 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
+from collections import defaultdict
+from datetime import datetime, timedelta
+
 from Model import model
 from DatabaseConfig.databaseConfig import engine,get_db
 from Routes import userRoutes
+# from CoverageReport import coverageRoutes
+# from CoverageReport.coverageReport import coverage_lock,coverage_data,cache_function_lines,cleanup_old_data
 from Repository import rolesRepo
-
+from Utils.utils import source_dirs
+from coverage_tracker import tracker
 
 
 app = FastAPI()
-
 
 model.Base.metadata.create_all(engine)
 
@@ -24,8 +29,10 @@ def on_startup():
     rolesRepo.create_default_roles(db)
 
 
-
 app.include_router(userRoutes.router)
+# app.include_router(coverageRoutes.router)
+
+
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -52,5 +59,58 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
-
 app.openapi = custom_openapi
+
+
+@app.get("/coverage-report")
+async def get_coverage_report():
+    tracker.cleanup_old_data()
+    report = tracker.get_hourly_report()
+
+    return {
+        "status": "success",
+        "coverage_report": report,
+        "period": "last_hour",
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+
+
+# from coverage import Coverage
+#
+# @app.middleware("http")
+# async def track_coverage(request: Request, call_next):
+#     cov = Coverage(source=source_dirs, auto_data=False)
+#     cov.start()
+#
+#     try:
+#         response = await call_next(request)
+#     finally:
+#         cov.stop()
+#         cov.save()
+#
+#         timestamp = time.time()
+#         cov_data = cov.get_data()
+#         endpoint = request.url.path
+#         print("Endpoint: ",endpoint)
+#         print("coverage data is :    ",cov_data)
+#
+#         with coverage_lock:
+#             if endpoint not in coverage_data:
+#                 coverage_data[endpoint] = {}
+#
+#             for file in cov_data.measured_files():
+#                 analysis = cov.analysis2(file)
+#                 executed_lines = set(analysis[3])
+#                 coverage_data[endpoint][file] = (executed_lines, timestamp)
+#
+#     return response
+#
+#
+# @app.on_event("startup")
+# def initialize_coverage():
+#     """ Start coverage tracking and background cleanup on app startup """
+#     cache_function_lines()
+#     cleanup_thread = threading.Thread(target=cleanup_old_data, daemon=True)
+#     cleanup_thread.start()
