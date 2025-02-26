@@ -15,9 +15,22 @@ def track_coverage(func):
                 if param.annotation == Request and param_name in kwargs:
                     request = kwargs[param_name]
                     break
-        # Use the exact URL path without adding extra "/user" if prefix exists
-        endpoint = f"{request.url.path}" if request else func.__name__
-        print(f"Tracking function: {func.__name__}, Endpoint: {endpoint}")  # Debug
+        # Use the Request URL if available, otherwise inherit from caller or use function name
+        endpoint = f"{request.url.path}" if request else None
+        caller = tracker.get_current_caller()
+        if endpoint is None and caller:
+            # Inherit the caller's URL-based endpoint if available
+            for ep in tracker.coverage_data.keys():
+                if ep.startswith("internal:/") and any(
+                    call["function"] == caller for call in tracker.coverage_data[ep]
+                ):
+                    endpoint = ep.replace("internal:", "")
+                    break
+            if not endpoint:
+                endpoint = func.__name__
+        elif endpoint is None:
+            endpoint = func.__name__
+        print(f"Tracking function: {func.__name__}, Endpoint: {endpoint}, Caller: {caller}")  # Debug
 
         try:
             module_file_path = inspect.getfile(func)
@@ -32,7 +45,8 @@ def track_coverage(func):
         )
 
         if is_user_defined:
-            caller = tracker.get_current_caller()
+            # Preserve the caller context across the call stack
+            previous_caller = tracker.get_current_caller()
             tracker.set_current_caller(func.__name__)
             try:
                 result = func(*args, **kwargs)
@@ -44,7 +58,7 @@ def track_coverage(func):
                 tracker.track_function(f"internal:{endpoint}", func.__name__, func, caller)
                 raise
             finally:
-                tracker.clear_current_caller()
+                tracker.set_current_caller(previous_caller)  # Restore previous caller instead of clearing
         else:
             return func(*args, **kwargs)
 

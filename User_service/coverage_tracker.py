@@ -10,7 +10,9 @@ class CoverageTracker:
         self.storage_file = "coverage_data.json"
         self.coverage_data: Dict[str, List[dict]] = self._load_data()
         self.current_caller: Optional[str] = None
-        self.cov = coverage.Coverage(source=["."], omit=["*/site-packages/*", "*/tests/*"])
+        # Ensure all project files are tracked, including utils.py and authClient.py
+        self.cov = coverage.Coverage(source=["/home/emumba/Emumba/Python/Food Delivery System/User_service"],
+                                     omit=["*/site-packages/*", "*/tests/*"])
         self.cov.start()
 
     def _load_data(self) -> Dict[str, List[dict]]:
@@ -36,12 +38,14 @@ class CoverageTracker:
             in_body = False
             for i, line in enumerate(source_lines):
                 stripped = line.strip()
-                if not in_body and line.startswith(" "):
+                if not in_body and stripped and not stripped.startswith('@'):  # Start after decorators
                     in_body = True
                 if in_body and stripped and not stripped.startswith('#') and not stripped.startswith('"""'):
-                    body_lines.append(start_line + i - 1)
+                    body_lines.append(start_line + i)
+            print(f"Function {func_obj.__name__} body lines: {body_lines}")  # Debug
             return body_lines
-        except (TypeError, OSError):
+        except (TypeError, OSError) as e:
+            print(f"Error getting body lines for {func_obj.__name__}: {e}")
             return []
 
     def track_function(self, endpoint: str, function_name: str, func_obj, caller: Optional[str] = None):
@@ -53,6 +57,7 @@ class CoverageTracker:
         cov_data = self.cov.get_data()
         file_name = os.path.abspath(inspect.getfile(func_obj))
         executed_lines = cov_data.lines(file_name) or set()
+        print(f"Executed lines for {file_name}: {executed_lines}")  # Debug
 
         body_lines = self._get_function_body_lines(func_obj)
         func_executed_lines = {line for line in executed_lines if line in body_lines}
@@ -97,7 +102,7 @@ class CoverageTracker:
 
         # Generate report only for URL-based endpoints
         for endpoint, calls in self.coverage_data.items():
-            if not endpoint.startswith("internal"):  # Match full URL prefix
+            if not endpoint.startswith("internal:/"):  # Match full URL prefix
                 print(f"Skipping endpoint: {endpoint} (not a URL-based endpoint)")  # Debug
                 continue
 
@@ -143,7 +148,6 @@ class CoverageTracker:
             "period": "last_hour",
             "timestamp": datetime.now().isoformat()
         }
-        print(f"Generated Report: {final_report}")  # Debug
         return final_report
 
 

@@ -5,9 +5,7 @@ from decorators import track_coverage
 
 @track_coverage
 def create_token_payload_obj(id : int, role_type : str):
-
     payload=schemas.auth_payload(id=id,role=role_type)
-
     return  payload
 
 @track_coverage

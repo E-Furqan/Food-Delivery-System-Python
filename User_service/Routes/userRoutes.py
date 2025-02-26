@@ -41,6 +41,7 @@ def loginEndpoint(request: Request,Credentials: schemas.Credentials, db:Session=
         print(f"Tracking endpoint: {request.url.path}")
         user = userRepo.login(Credentials, db)
         payload = utils.create_token_payload_obj(user.user_id, user.activeRole)
+        print("payload", payload)
         response = authClient.create_token(payload)
         return response
     except Exception as e:
