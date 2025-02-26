@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import sessionmaker
-# from decorators import track_coverage
+from decorators import track_coverage
 
 SQLALCHAMY_DATABASE_URL = 'sqlite:///./User_service.db'
 

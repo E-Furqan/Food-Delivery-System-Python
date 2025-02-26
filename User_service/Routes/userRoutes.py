@@ -26,6 +26,7 @@ def createUserEndpoint(request: Request, user: schemas.User, db: Session = Depen
     try:
         print("request received")
         result = userRepo.createUser(user, db)  # Await the async function
+        print("result",result)
         return result
     except Exception as e:
         print(e)
@@ -35,11 +36,11 @@ def createUserEndpoint(request: Request, user: schemas.User, db: Session = Depen
 
 @router.post('/login')
 @track_coverage
-def login(request: schemas.Credentials, db:Session=Depends(get_db)):
-    user = userRepo.login(request, db)
-    payload = utils.create_token_payload_obj(user.user_id, user.activeRole)
-
+def loginEndpoint(request: Request,Credentials: schemas.Credentials, db:Session=Depends(get_db)):
     try:
+        print(f"Tracking endpoint: {request.url.path}")
+        user = userRepo.login(Credentials, db)
+        payload = utils.create_token_payload_obj(user.user_id, user.activeRole)
         response = authClient.create_token(payload)
         return response
     except Exception as e:
@@ -52,7 +53,7 @@ def login(request: schemas.Credentials, db:Session=Depends(get_db)):
 
 
 @router.post('/refresh/token')
-def refresh_token(request: schemas.refresh_token):
+def refresh_tokenEndpoint(request: schemas.refresh_token):
 
     try:
         response = authClient.refresh_token(request)
@@ -65,16 +66,16 @@ def refresh_token(request: schemas.refresh_token):
 
 
 @router.put('/delete/user')
-def deleteUser(request: schemas.Credentials, db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
+def deleteUserEndpoint(request: schemas.Credentials, db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
     return userRepo.deleteUser(request, db)
 
 
 @router.get(f'/fetch/user',response_model=schemas.User)
-def fetchUser(db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
+def fetchUserEndpoint(db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
     return userRepo.fetchUser(token_payload['id'], db)
 
 @router.put(f'/update/order/status',response_model=schemas.User)
-def update_order_status(
+def update_order_statusEndpoint(
     request: schemas.order_details,
     token_payload: dict = Depends(middleware.validate_token)
 ):

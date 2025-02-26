@@ -68,3 +68,4 @@ async def get_coverage_report():
     report = tracker.get_hourly_report()
 
     return report
+

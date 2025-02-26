@@ -15,9 +15,8 @@ def track_coverage(func):
                 if param.annotation == Request and param_name in kwargs:
                     request = kwargs[param_name]
                     break
-        print(f"Request object: {request}")  # Debug
         # Use the exact URL path without adding extra "/user" if prefix exists
-        endpoint = f"http://127.0.0.1:8000{request.url.path}" if request else func.__name__
+        endpoint = f"{request.url.path}" if request else func.__name__
         print(f"Tracking function: {func.__name__}, Endpoint: {endpoint}")  # Debug
 
         try:

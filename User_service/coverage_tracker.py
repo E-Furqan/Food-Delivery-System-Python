@@ -73,7 +73,6 @@ class CoverageTracker:
         report = {}
         function_data = {}
 
-        print(f"Raw coverage data: {self.coverage_data}")  # Debug
 
         # Build function data with caller relationships
         for endpoint, calls in self.coverage_data.items():
@@ -98,7 +97,7 @@ class CoverageTracker:
 
         # Generate report only for URL-based endpoints
         for endpoint, calls in self.coverage_data.items():
-            if not endpoint.startswith("internal:http://127.0.0.1:8000/user"):  # Match full URL prefix
+            if not endpoint.startswith("internal"):  # Match full URL prefix
                 print(f"Skipping endpoint: {endpoint} (not a URL-based endpoint)")  # Debug
                 continue
 
