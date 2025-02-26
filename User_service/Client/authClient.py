@@ -5,7 +5,7 @@ from EnviornmentVariable import enVVar
 from decorators import track_coverage
 
 @track_coverage
-async def create_token(payload:schemas.auth_payload):
+def create_token(payload:schemas.auth_payload):
 
     url =enVVar.CREATE_TOKEN_URL
 
@@ -18,7 +18,7 @@ async def create_token(payload:schemas.auth_payload):
         print("Error:", response.status_code, response.text)
 
 @track_coverage
-async def refresh_token(payload:schemas.refresh_token):
+def refresh_token(payload:schemas.refresh_token):
     url = enVVar.REFRESH_TOKEN_URL
 
     response = requests.post(url, json=payload.dict())

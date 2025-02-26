@@ -1,4 +1,4 @@
-from fastapi import  APIRouter,Depends,HTTPException, status
+from fastapi import  APIRouter,Depends,HTTPException, status,Request
 from fastapi.security import APIKeyHeader
 from sqlalchemy.orm import Session
 
@@ -21,10 +21,11 @@ router = APIRouter(
 
 @router.post('/register/user')
 @track_coverage
-async def createUserEndpoint(request: schemas.User, db: Session = Depends(get_db)):
+def createUserEndpoint(request: Request, user: schemas.User, db: Session = Depends(get_db)):
+    print(f"Tracking endpoint: {request.url.path}")
     try:
         print("request received")
-        result = await userRepo.createUser(request, db)  # Await the async function
+        result = userRepo.createUser(user, db)  # Await the async function
         return result
     except Exception as e:
         print(e)
@@ -34,12 +35,12 @@ async def createUserEndpoint(request: schemas.User, db: Session = Depends(get_db
 
 @router.post('/login')
 @track_coverage
-async def login(request: schemas.Credentials, db:Session=Depends(get_db)):
-    user = await userRepo.login(request, db)
+def login(request: schemas.Credentials, db:Session=Depends(get_db)):
+    user = userRepo.login(request, db)
     payload = utils.create_token_payload_obj(user.user_id, user.activeRole)
 
     try:
-        response = await authClient.create_token(payload)
+        response = authClient.create_token(payload)
         return response
     except Exception as e:
         raise HTTPException(

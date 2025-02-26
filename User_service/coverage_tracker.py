@@ -65,12 +65,15 @@ class CoverageTracker:
             "source_file": file_name,
             "caller": caller
         })
+        print(f"Tracked: {endpoint} - {function_name}, Lines: {len(body_lines)}, Executed: {len(func_executed_lines)}")  # Debug
         self._save_data()
 
     def get_hourly_report(self) -> Dict:
         one_hour_ago = datetime.now() - timedelta(hours=1)
         report = {}
         function_data = {}
+
+        print(f"Raw coverage data: {self.coverage_data}")  # Debug
 
         # Build function data with caller relationships
         for endpoint, calls in self.coverage_data.items():
@@ -93,61 +96,84 @@ class CoverageTracker:
                 if caller:
                     function_data[func_name]["callers"].add(caller)
 
-        # Generate report with aggregated metrics
+        # Generate report only for URL-based endpoints
         for endpoint, calls in self.coverage_data.items():
+            if not endpoint.startswith("internal:http://127.0.0.1:8000/user"):  # Match full URL prefix
+                print(f"Skipping endpoint: {endpoint} (not a URL-based endpoint)")  # Debug
+                continue
+
             recent_calls = [c for c in calls if datetime.fromisoformat(c["timestamp"]) >= one_hour_ago]
             if not recent_calls:
+                print(f"No recent calls for {endpoint}")  # Debug
                 continue
 
-            top_level_funcs = {call["function"] for call in recent_calls if not function_data[call["function"]]["callers"]}
-            if not top_level_funcs:
-                continue
+            call_entries = []
+            for call in recent_calls:
+                func_name = call["function"]
+                # Only top-level if it’s a URL-based endpoint with no caller or caller not in function_data
+                if call["caller"] is None or call["caller"] not in function_data:
+                    func_info = function_data[func_name]
+                    nested_funcs = self._build_nested_functions(func_name, function_data)
 
-            functions = {}
-            total_lines = 0
-            executed_lines = 0
+                    agg_total, agg_executed = self._aggregate_metrics(func_name, function_data)
 
-            for func in top_level_funcs:
-                func_info = function_data[func]
-                nested_funcs = self._build_nested_functions(func, function_data)
+                    call_entry = {
+                        "timestamp": call["timestamp"],
+                        "total_lines": agg_total,
+                        "executed_lines": agg_executed,
+                        "coverage_percentage": round((agg_executed / agg_total) * 100, 2) if agg_total > 0 else 0,
+                        "functions": {
+                            func_name: {
+                                "total_lines": func_info["total_lines"],
+                                "executed_lines": func_info["executed_lines"],
+                                "coverage_percentage": round(
+                                    (func_info["executed_lines"] / func_info["total_lines"]) * 100, 2)
+                                if func_info["total_lines"] > 0 else 0,
+                                "source_file": func_info["source_file"],
+                                "functions": nested_funcs
+                            }
+                        }
+                    }
+                    call_entries.append(call_entry)
 
-                # Aggregate totals recursively
-                agg_total, agg_executed = self._aggregate_metrics(func, function_data)
-                total_lines += agg_total
-                executed_lines += agg_executed
+            if call_entries:
+                report[endpoint] = call_entries
 
-                functions[func] = {
-                    "total_lines": func_info["total_lines"],
-                    "executed_lines": func_info["executed_lines"],
-                    "coverage_percentage": round((func_info["executed_lines"] / func_info["total_lines"]) * 100, 2)
-                    if func_info["total_lines"] > 0 else 0,
-                    "source_file": func_info["source_file"],
-                    "functions": nested_funcs
-                }
+        final_report = {
+            "coverage_report": report,
+            "period": "last_hour",
+            "timestamp": datetime.now().isoformat()
+        }
+        print(f"Generated Report: {final_report}")  # Debug
+        return final_report
 
-            report[endpoint] = {
-                "total_lines": total_lines,
-                "executed_lines": executed_lines,
-                "coverage_percentage": round((executed_lines / total_lines) * 100, 2) if total_lines > 0 else 0,
-                "functions": functions
-            }
 
-        return report
+    def _aggregate_metrics(self, func_name: str, function_data: Dict, visited: set = None) -> tuple[int, int]:
+        if visited is None:
+            visited = set()
+        if func_name in visited:
+            return 0, 0
+        visited.add(func_name)
 
-    def _aggregate_metrics(self, func_name: str, function_data: Dict) -> tuple[int, int]:
-        """Recursively aggregate total_lines and executed_lines for a function and its nested calls."""
         total_lines = function_data[func_name]["total_lines"]
         executed_lines = function_data[func_name]["executed_lines"]
 
         for called_func, info in function_data.items():
             if func_name in info["callers"]:
-                nested_total, nested_executed = self._aggregate_metrics(called_func, function_data)
+                nested_total, nested_executed = self._aggregate_metrics(called_func, function_data, visited)
                 total_lines += nested_total
                 executed_lines += nested_executed
 
+        visited.remove(func_name)
         return total_lines, executed_lines
 
-    def _build_nested_functions(self, func_name: str, function_data: Dict) -> Dict:
+    def _build_nested_functions(self, func_name: str, function_data: Dict, visited: set = None) -> Dict:
+        if visited is None:
+            visited = set()
+        if func_name in visited:
+            return {}
+        visited.add(func_name)
+
         nested = {}
         for called_func, info in function_data.items():
             if func_name in info["callers"]:
@@ -157,8 +183,9 @@ class CoverageTracker:
                     "coverage_percentage": round((info["executed_lines"] / info["total_lines"]) * 100, 2)
                     if info["total_lines"] > 0 else 0,
                     "source_file": info["source_file"],
-                    "functions": self._build_nested_functions(called_func, function_data)
+                    "functions": self._build_nested_functions(called_func, function_data, visited)
                 }
+        visited.remove(func_name)
         return nested
 
     def set_current_caller(self, caller: str):

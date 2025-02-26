@@ -9,7 +9,7 @@ from Hashing.hash import Hash
 from decorators import track_coverage
 
 @track_coverage
-async def createUser(request: schemas.User, db: Session):
+def createUser(request: schemas.User, db: Session):
     role_type = [role.role_type for role in request.roles]
     roles = db.query(model.Role).filter(model.Role.role_type.in_(role_type)).all()
     if len(roles) <= 0:
@@ -70,7 +70,7 @@ def deleteUser(request: schemas.Credentials, db: Session):
 
 
 @track_coverage
-async def login(request: schemas.Credentials, db: Session):
+def login(request: schemas.Credentials, db: Session):
     user = db.query(model.User).filter(model.User.email == request.email).first()
 
     # If the user doesn't exist, raise an exception
