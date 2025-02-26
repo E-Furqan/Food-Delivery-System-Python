@@ -2,8 +2,10 @@ import requests
 
 from Schemas import schemas
 from EnviornmentVariable import enVVar
+from decorators import track_coverage
 
-def create_token(payload:schemas.auth_payload):
+@track_coverage
+async def create_token(payload:schemas.auth_payload):
 
     url =enVVar.CREATE_TOKEN_URL
 
@@ -15,7 +17,8 @@ def create_token(payload:schemas.auth_payload):
     else:
         print("Error:", response.status_code, response.text)
 
-def refresh_token(payload:schemas.refresh_token):
+@track_coverage
+async def refresh_token(payload:schemas.refresh_token):
     url = enVVar.REFRESH_TOKEN_URL
 
     response = requests.post(url, json=payload.dict())

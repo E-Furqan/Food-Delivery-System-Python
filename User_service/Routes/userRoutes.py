@@ -22,18 +22,24 @@ router = APIRouter(
 @router.post('/register/user')
 @track_coverage
 async def createUserEndpoint(request: schemas.User, db: Session = Depends(get_db)):
-    print("request received")
-    result = await userRepo.createUser(request, db)  # Await the async function
-    return result
+    try:
+        print("request received")
+        result = await userRepo.createUser(request, db)  # Await the async function
+        return result
+    except Exception as e:
+        print(e)
+        print("line 32")
+        return e
+
 
 @router.post('/login')
 @track_coverage
 async def login(request: schemas.Credentials, db:Session=Depends(get_db)):
-    user = userRepo.login(request, db)
+    user = await userRepo.login(request, db)
     payload = utils.create_token_payload_obj(user.user_id, user.activeRole)
 
     try:
-        response = authClient.create_token(payload)
+        response = await authClient.create_token(payload)
         return response
     except Exception as e:
         raise HTTPException(
