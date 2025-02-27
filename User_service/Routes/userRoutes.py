@@ -22,7 +22,7 @@ router = APIRouter(
 
 @router.post('/register/user')
 @track_coverage
-async  def createUserEndpoint(request: Request, user: schemas.User, db: Session = Depends(get_db)):
+async def createUserEndpoint(request: Request, user: schemas.User, db: Session = Depends(get_db)):
     try:
         print("testing")
         print("testing")

@@ -8,10 +8,7 @@ import coverage
 
 def track_coverage(func):
     sig = inspect.signature(func)
-
-    # Synchronous wrapper
-    @wraps(func)
-    def sync_wrapper(*args, **kwargs):
+    def _get_end_point_caller(*args, **kwargs):
         request = next((arg for arg in args if isinstance(arg, Request)), None)
         if request is None:
             for param_name, param in sig.parameters.items():
@@ -21,9 +18,10 @@ def track_coverage(func):
         endpoint = f"{request.url.path}" if request else None
         caller = tracker.get_current_caller()
         if endpoint is None and caller:
+            # Check raw data format in coverage_data
             for ep in tracker.coverage_data.keys():
                 if ep.startswith("internal:/") and any(
-                    call["function"] == caller for call in tracker.coverage_data[ep]
+                        call.get("function") == caller for call in tracker.coverage_data[ep]
                 ):
                     endpoint = ep.replace("internal:", "")
                     break
@@ -32,7 +30,12 @@ def track_coverage(func):
         elif endpoint is None:
             endpoint = func.__name__
         print(f"Tracking function: {func.__name__}, Endpoint: {endpoint}, Caller: {caller}")  # Debug
+        return endpoint, caller
 
+    # Synchronous wrapper
+    @wraps(func)
+    def sync_wrapper(*args, **kwargs):
+        endpoint, caller = _get_end_point_caller(*args, **kwargs)
         try:
             module_file_path = inspect.getfile(func)
         except TypeError:
@@ -46,18 +49,16 @@ def track_coverage(func):
         )
 
         if is_user_defined:
-            # Create a new Coverage instance for this call
             cov = coverage.Coverage(
                 source=["/home/emumba/Emumba/Python/Food Delivery System/User_service"],
                 omit=["*/site-packages/*", "*/tests/*"]
             )
-            cov.start()  # Start tracking for this specific call
+            cov.start()
 
             previous_caller = tracker.get_current_caller()
             tracker.set_current_caller(func.__name__)
             try:
                 result = func(*args, **kwargs)
-                # Stop coverage after the function returns, before any FastAPI processing
                 cov.stop()
                 cov.save()
                 cov_data = cov.get_data()
@@ -106,29 +107,10 @@ def track_coverage(func):
         else:
             return func(*args, **kwargs)
 
-    # Asynchronous wrapper (similarly modified, but for async functions)
+    # Asynchronous wrapper
     @wraps(func)
     async def async_wrapper(*args, **kwargs):
-        request = next((arg for arg in args if isinstance(arg, Request)), None)
-        if request is None:
-            for param_name, param in sig.parameters.items():
-                if param.annotation == Request and param_name in kwargs:
-                    request = kwargs[param_name]
-                    break
-        endpoint = f"{request.url.path}" if request else None
-        caller = tracker.get_current_caller()
-        if endpoint is None and caller:
-            for ep in tracker.coverage_data.keys():
-                if ep.startswith("internal:/") and any(
-                    call["function"] == caller for call in tracker.coverage_data[ep]
-                ):
-                    endpoint = ep.replace("internal:", "")
-                    break
-            if not endpoint:
-                endpoint = func.__name__
-        elif endpoint is None:
-            endpoint = func.__name__
-        print(f"Tracking function: {func.__name__}, Endpoint: {endpoint}, Caller: {caller}")  # Debug
+        endpoint, caller = _get_end_point_caller(*args, **kwargs)
 
         try:
             module_file_path = inspect.getfile(func)
@@ -143,18 +125,16 @@ def track_coverage(func):
         )
 
         if is_user_defined:
-            # Create a new Coverage instance for this call
             cov = coverage.Coverage(
                 source=["/home/emumba/Emumba/Python/Food Delivery System/User_service"],
                 omit=["*/site-packages/*", "*/tests/*"]
             )
-            cov.start()  # Start tracking for this specific call
+            cov.start()
 
             previous_caller = tracker.get_current_caller()
             tracker.set_current_caller(func.__name__)
             try:
                 result = await func(*args, **kwargs)
-                # Stop coverage after the function returns, before any FastAPI processing
                 cov.stop()
                 cov.save()
                 cov_data = cov.get_data()
@@ -203,7 +183,6 @@ def track_coverage(func):
         else:
             return await func(*args, **kwargs)
 
-    # Return the appropriate wrapper based on whether the function is async
     if inspect.iscoroutinefunction(func):
         async_wrapper.__signature__ = sig
         return async_wrapper
