@@ -2,7 +2,7 @@
     "internal:createUser": [
         {
             "function": "createUser",
-            "timestamp": "2025-02-27T13:37:18.031369",
+            "timestamp": "2025-02-27T14:11:17.626030",
             "total_lines": 29,
             "executed_lines": 6,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Repository/userRepo.py",
@@ -12,7 +12,7 @@
     "internal:/user/register/user": [
         {
             "function": "createUserEndpoint",
-            "timestamp": "2025-02-27T13:37:18.082881",
+            "timestamp": "2025-02-27T14:11:17.674264",
             "total_lines": 8,
             "executed_lines": 6,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Routes/userRoutes.py",
@@ -20,23 +20,7 @@
         },
         {
             "function": "createUser",
-            "timestamp": "2025-02-27T13:37:36.147794",
-            "total_lines": 29,
-            "executed_lines": 6,
-            "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Repository/userRepo.py",
-            "caller": "createUserEndpoint"
-        },
-        {
-            "function": "createUserEndpoint",
-            "timestamp": "2025-02-27T13:37:36.200017",
-            "total_lines": 8,
-            "executed_lines": 6,
-            "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Routes/userRoutes.py",
-            "caller": null
-        },
-        {
-            "function": "createUser",
-            "timestamp": "2025-02-27T13:37:53.449617",
+            "timestamp": "2025-02-27T14:11:21.123631",
             "total_lines": 29,
             "executed_lines": 18,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Repository/userRepo.py",
@@ -44,23 +28,7 @@
         },
         {
             "function": "createUserEndpoint",
-            "timestamp": "2025-02-27T13:37:53.491011",
-            "total_lines": 8,
-            "executed_lines": 5,
-            "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Routes/userRoutes.py",
-            "caller": null
-        },
-        {
-            "function": "createUser",
-            "timestamp": "2025-02-27T13:38:00.052350",
-            "total_lines": 29,
-            "executed_lines": 18,
-            "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Repository/userRepo.py",
-            "caller": "createUserEndpoint"
-        },
-        {
-            "function": "createUserEndpoint",
-            "timestamp": "2025-02-27T13:38:00.107843",
+            "timestamp": "2025-02-27T14:11:21.164334",
             "total_lines": 8,
             "executed_lines": 5,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Routes/userRoutes.py",
@@ -70,7 +38,7 @@
     "internal:login": [
         {
             "function": "login",
-            "timestamp": "2025-02-27T13:38:12.524316",
+            "timestamp": "2025-02-27T14:11:34.896336",
             "total_lines": 14,
             "executed_lines": 5,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Repository/userRepo.py",
@@ -80,7 +48,7 @@
     "internal:create_token_payload_obj": [
         {
             "function": "create_token_payload_obj",
-            "timestamp": "2025-02-27T13:38:12.594236",
+            "timestamp": "2025-02-27T14:11:34.971328",
             "total_lines": 3,
             "executed_lines": 2,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Utils/utils.py",
@@ -90,9 +58,9 @@
     "internal:create_token": [
         {
             "function": "create_token",
-            "timestamp": "2025-02-27T13:38:12.680360",
+            "timestamp": "2025-02-27T14:11:35.082133",
             "total_lines": 7,
-            "executed_lines": 2,
+            "executed_lines": 4,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Client/authClient.py",
             "caller": "loginEndpoint"
         }
@@ -100,15 +68,15 @@
     "internal:/user/login": [
         {
             "function": "loginEndpoint",
-            "timestamp": "2025-02-27T13:38:12.729129",
+            "timestamp": "2025-02-27T14:11:35.139119",
             "total_lines": 14,
-            "executed_lines": 10,
+            "executed_lines": 7,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Routes/userRoutes.py",
             "caller": null
         },
         {
             "function": "login",
-            "timestamp": "2025-02-27T13:38:16.896727",
+            "timestamp": "2025-02-27T14:11:41.205665",
             "total_lines": 14,
             "executed_lines": 5,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Repository/userRepo.py",
@@ -116,7 +84,7 @@
         },
         {
             "function": "create_token_payload_obj",
-            "timestamp": "2025-02-27T13:38:16.987563",
+            "timestamp": "2025-02-27T14:11:41.283647",
             "total_lines": 3,
             "executed_lines": 2,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Utils/utils.py",
@@ -124,7 +92,7 @@
         },
         {
             "function": "create_token",
-            "timestamp": "2025-02-27T13:38:17.090421",
+            "timestamp": "2025-02-27T14:11:41.377693",
             "total_lines": 7,
             "executed_lines": 2,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Client/authClient.py",
@@ -132,7 +100,7 @@
         },
         {
             "function": "loginEndpoint",
-            "timestamp": "2025-02-27T13:38:17.149934",
+            "timestamp": "2025-02-27T14:11:41.437324",
             "total_lines": 14,
             "executed_lines": 10,
             "source_file": "/home/emumba/Emumba/Python/Food Delivery System/User_service/Routes/userRoutes.py",
