@@ -1,5 +1,6 @@
 from fastapi import  APIRouter,Depends,HTTPException, status,Request
 from fastapi.security import APIKeyHeader
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from DatabaseConfig.databaseConfig import get_db
@@ -21,17 +22,14 @@ router = APIRouter(
 
 @router.post('/register/user')
 @track_coverage
-def createUserEndpoint(request: Request, user: schemas.User, db: Session = Depends(get_db)):
-    print(f"Tracking endpoint: {request.url.path}")
+async  def createUserEndpoint(request: Request, user: schemas.User, db: Session = Depends(get_db)):
     try:
-        print("request received")
-        result = userRepo.createUser(user, db)  # Await the async function
-        print("result",result)
+        print("testing")
+        print("testing")
+        result = await userRepo.createUser(user, db)
         return result
-    except Exception as e:
-        print(e)
-        print("line 32")
-        return e
+    except HTTPException as e:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST,content=e.detail)
 
 
 @router.post('/login')

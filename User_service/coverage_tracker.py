@@ -10,10 +10,7 @@ class CoverageTracker:
         self.storage_file = "coverage_data.json"
         self.coverage_data: Dict[str, List[dict]] = self._load_data()
         self.current_caller: Optional[str] = None
-        # Ensure all project files are tracked, including utils.py and authClient.py
-        self.cov = coverage.Coverage(source=["/home/emumba/Emumba/Python/Food Delivery System/User_service"],
-                                     omit=["*/site-packages/*", "*/tests/*"])
-        self.cov.start()
+        # No global self.cov anymore
 
     def _load_data(self) -> Dict[str, List[dict]]:
         if os.path.exists(self.storage_file):
@@ -38,25 +35,32 @@ class CoverageTracker:
             in_body = False
             for i, line in enumerate(source_lines):
                 stripped = line.strip()
-                if not in_body and stripped and not stripped.startswith('@'):  # Start after decorators
+                if not in_body and stripped and not stripped.startswith('@'):
                     in_body = True
                 if in_body and stripped and not stripped.startswith('#') and not stripped.startswith('"""'):
                     body_lines.append(start_line + i)
-            print(f"Function {func_obj.__name__} body lines: {body_lines}")  # Debug
+            print(f"Function {func_obj.__name__} body lines: {body_lines}")
             return body_lines
         except (TypeError, OSError) as e:
             print(f"Error getting body lines for {func_obj.__name__}: {e}")
             return []
 
-    def track_function(self, endpoint: str, function_name: str, func_obj, caller: Optional[str] = None):
+    def track_function(self, endpoint: str, function_name: str, func_obj, caller: Optional[str] = None, cov=None):
         current_time = datetime.now().isoformat()
         if endpoint not in self.coverage_data:
             self.coverage_data[endpoint] = []
 
-        self.cov.save()
-        cov_data = self.cov.get_data()
+        if cov is None:
+            raise ValueError("Coverage object must be provided to track_function")
+
+        # Stop coverage and get data for this specific call
+        cov.stop()
+        cov.save()
+        cov_data = cov.get_data()
         file_name = os.path.abspath(inspect.getfile(func_obj))
         executed_lines = cov_data.lines(file_name) or set()
+        all_lines = cov_data.lines(file_name) or set()
+        print(f"All executed lines for {file_name}: {all_lines}")
         print(f"Executed lines for {file_name}: {executed_lines}")  # Debug
 
         body_lines = self._get_function_body_lines(func_obj)
@@ -78,7 +82,6 @@ class CoverageTracker:
         report = {}
         function_data = {}
 
-
         # Build function data with caller relationships
         for endpoint, calls in self.coverage_data.items():
             recent_calls = [
@@ -95,14 +98,16 @@ class CoverageTracker:
                         "executed_lines": executed_lines,
                         "source_file": call["source_file"],
                         "endpoint": endpoint,
-                        "callers": set()
+                        "callers": set(),
+                        "calls": []  # Store all calls for this function
                     }
+                function_data[func_name]["calls"].append(call)
                 if caller:
                     function_data[func_name]["callers"].add(caller)
 
         # Generate report only for URL-based endpoints
         for endpoint, calls in self.coverage_data.items():
-            if not endpoint.startswith("internal:/"):  # Match full URL prefix
+            if not endpoint.startswith("internal:/"):
                 print(f"Skipping endpoint: {endpoint} (not a URL-based endpoint)")  # Debug
                 continue
 
@@ -112,33 +117,53 @@ class CoverageTracker:
                 continue
 
             call_entries = []
-            for call in recent_calls:
-                func_name = call["function"]
-                # Only top-level if it’s a URL-based endpoint with no caller or caller not in function_data
-                if call["caller"] is None or call["caller"] not in function_data:
-                    func_info = function_data[func_name]
-                    nested_funcs = self._build_nested_functions(func_name, function_data)
+            # Process top-level calls (createUserEndpoint)
+            top_level_calls = [c for c in recent_calls if c["caller"] is None]
+            for top_call in top_level_calls:
+                func_name = top_call["function"]
+                func_info = function_data[func_name]
+                # Find the closest nested call (createUser) by timestamp
+                nested_calls = [
+                    c for c in recent_calls
+                    if c["caller"] == func_name and
+                       datetime.fromisoformat(c["timestamp"]) <= datetime.fromisoformat(
+                        top_call["timestamp"]) + timedelta(seconds=1)
+                ]
+                nested_funcs = {}
+                if nested_calls:
+                    # Take the most recent nested call within 1 second
+                    closest_nested = max(nested_calls, key=lambda x: datetime.fromisoformat(x["timestamp"]))
+                    nested_func_name = closest_nested["function"]
+                    nested_info = function_data[nested_func_name]
+                    nested_funcs[nested_func_name] = {
+                        "total_lines": closest_nested["total_lines"],
+                        "executed_lines": closest_nested["executed_lines"],
+                        "coverage_percentage": round(
+                            (closest_nested["executed_lines"] / closest_nested["total_lines"]) * 100, 2
+                        ) if closest_nested["total_lines"] > 0 else 0,
+                        "source_file": closest_nested["source_file"],
+                        "functions": self._build_nested_functions(nested_func_name, function_data)
+                    }
 
-                    agg_total, agg_executed = self._aggregate_metrics(func_name, function_data)
-
-                    call_entry = {
-                        "timestamp": call["timestamp"],
-                        "total_lines": agg_total,
-                        "executed_lines": agg_executed,
-                        "coverage_percentage": round((agg_executed / agg_total) * 100, 2) if agg_total > 0 else 0,
-                        "functions": {
-                            func_name: {
-                                "total_lines": func_info["total_lines"],
-                                "executed_lines": func_info["executed_lines"],
-                                "coverage_percentage": round(
-                                    (func_info["executed_lines"] / func_info["total_lines"]) * 100, 2)
-                                if func_info["total_lines"] > 0 else 0,
-                                "source_file": func_info["source_file"],
-                                "functions": nested_funcs
-                            }
+                agg_total, agg_executed = self._aggregate_metrics(func_name, function_data)
+                call_entry = {
+                    "timestamp": top_call["timestamp"],
+                    "total_lines": agg_total,
+                    "executed_lines": agg_executed,
+                    "coverage_percentage": round((agg_executed / agg_total) * 100, 2) if agg_total > 0 else 0,
+                    "functions": {
+                        func_name: {
+                            "total_lines": top_call["total_lines"],
+                            "executed_lines": top_call["executed_lines"],
+                            "coverage_percentage": round(
+                                (top_call["executed_lines"] / top_call["total_lines"]) * 100, 2
+                            ) if top_call["total_lines"] > 0 else 0,
+                            "source_file": top_call["source_file"],
+                            "functions": nested_funcs
                         }
                     }
-                    call_entries.append(call_entry)
+                }
+                call_entries.append(call_entry)
 
             if call_entries:
                 report[endpoint] = call_entries
@@ -149,8 +174,6 @@ class CoverageTracker:
             "timestamp": datetime.now().isoformat()
         }
         return final_report
-
-
     def _aggregate_metrics(self, func_name: str, function_data: Dict, visited: set = None) -> tuple[int, int]:
         if visited is None:
             visited = set()
@@ -211,9 +234,5 @@ class CoverageTracker:
         }
         self.coverage_data = {k: v for k, v in self.coverage_data.items() if v}
         self._save_data()
-
-    def stop_coverage(self):
-        self.cov.stop()
-        self.cov.save()
 
 tracker = CoverageTracker()

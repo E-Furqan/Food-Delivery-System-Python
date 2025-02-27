@@ -1,16 +1,10 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-from collections import defaultdict
-from datetime import datetime, timedelta
-
 from Model import model
 from DatabaseConfig.databaseConfig import engine,get_db
 from Routes import userRoutes
-# from CoverageReport import coverageRoutes
-# from CoverageReport.coverageReport import coverage_lock,coverage_data,cache_function_lines,cleanup_old_data
 from Repository import rolesRepo
-from Utils.utils import source_dirs
 from coverage_tracker import tracker
 
 
@@ -30,7 +24,6 @@ def on_startup():
 
 
 app.include_router(userRoutes.router)
-# app.include_router(coverageRoutes.router)
 
 
 def custom_openapi():

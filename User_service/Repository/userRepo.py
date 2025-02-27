@@ -1,16 +1,21 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
 
-from Utils import utils
+
 from Model import model
 from Schemas import schemas
 from Hashing.hash import Hash
 from decorators import track_coverage
 
 @track_coverage
-def createUser(request: schemas.User, db: Session):
-    role_type = [role.role_type for role in request.roles]
+async def createUser(request: schemas.User, db: Session):
+    try:
+        role_type = [role.role_type for role in request.roles]
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one valid role is required."
+        )
     roles = db.query(model.Role).filter(model.Role.role_type.in_(role_type)).all()
     if len(roles) <= 0:
         raise HTTPException(
