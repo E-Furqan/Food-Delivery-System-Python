@@ -48,26 +48,6 @@ class CoverageTracker:
             print(f"Error getting body lines for {func_obj.__name__}: {e}")
             return []
 
-    def track_function(self, endpoint: str, function_name: str, func_obj, caller: Optional[str] = None, cov=None):
-        if cov is None:
-            raise ValueError("Coverage object must be provided to track_function")
-        cov.stop()
-        cov.save()
-        cov_data = cov.get_data()
-        file_name = os.path.abspath(inspect.getfile(func_obj))
-        all_lines = cov_data.lines(file_name) or set()
-        body_lines = self._get_function_body_lines(func_obj)
-        executed_lines = {line for line in all_lines if line in body_lines}
-        raw_data = {
-            "function": function_name,
-            "timestamp": datetime.now().isoformat(),
-            "total_lines": len(body_lines),
-            "executed_lines": len(executed_lines),
-            "source_file": file_name,
-            "caller": caller
-        }
-        self.coverage_data.setdefault(endpoint, []).append(raw_data)
-        self._save_data()
 
     def get_hourly_report(self) -> Dict:
         one_hour_ago = datetime.now() - timedelta(hours=1)
