@@ -47,9 +47,10 @@ def fetchUser(id: int, db: Session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"User with the id {id} is not available")
 
-    db.commit()
+    user_dict = user.__dict__.copy()
+    user_dict['phoneNumber'] = str(user.phoneNumber)
 
-    return user
+    return schemas.User(**user_dict)
 
 @track_coverage
 def deleteUser(request: schemas.Credentials, db: Session):

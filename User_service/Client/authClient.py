@@ -6,12 +6,8 @@ from decorators import track_coverage
 
 @track_coverage
 def create_token(payload:schemas.auth_payload):
-
     url =enVVar.CREATE_TOKEN_URL
-
     response = requests.post(url, json=payload.dict())
-
-    # Printing response
     if response.status_code == 200:
         return response.json()
     else:

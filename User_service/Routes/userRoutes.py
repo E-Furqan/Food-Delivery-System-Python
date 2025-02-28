@@ -47,11 +47,19 @@ def loginEndpoint(request: Request,Credentials: schemas.Credentials, db:Session=
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"error in authentication service : {e}"
         )
-
     return
 
 
+@router.get(f'/fetch/user',response_model=schemas.User)
+@track_coverage
+def fetchUserEndpoint(request: Request, token_payload: dict = Depends(middleware.validate_token),db:Session=Depends(get_db)):
+    user=userRepo.fetchUser(token_payload['id'], db)
+    return user
+
+
+
 @router.post('/refresh/token')
+@track_coverage
 def refresh_tokenEndpoint(request: schemas.refresh_token):
 
     try:
@@ -65,15 +73,15 @@ def refresh_tokenEndpoint(request: schemas.refresh_token):
 
 
 @router.put('/delete/user')
+@track_coverage
 def deleteUserEndpoint(request: schemas.Credentials, db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
     return userRepo.deleteUser(request, db)
 
 
-@router.get(f'/fetch/user',response_model=schemas.User)
-def fetchUserEndpoint(db:Session=Depends(get_db), token_payload: dict = Depends(middleware.validate_token)):
-    return userRepo.fetchUser(token_payload['id'], db)
+
 
 @router.put(f'/update/order/status',response_model=schemas.User)
+@track_coverage
 def update_order_statusEndpoint(
     request: schemas.order_details,
     token_payload: dict = Depends(middleware.validate_token)

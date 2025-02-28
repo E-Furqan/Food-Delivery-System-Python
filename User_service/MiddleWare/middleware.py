@@ -2,12 +2,12 @@ from fastapi import Request, HTTPException, status
 import jwt
 
 from EnviornmentVariable import enVVar
-
+from Utils.utils import track_coverage
 
 SECRET_KEY = enVVar.SECRET_KEY
 ALGORITHM = enVVar.ALGORITHM
 
-
+@track_coverage
 def validate_token(request: Request):
     token = request.headers.get("Authorization")
 
@@ -29,11 +29,13 @@ def validate_token(request: Request):
         return payload
 
     except jwt.ExpiredSignatureError:
+        print("Token has expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired"
         )
     except jwt.PyJWTError:
+        print("Invalid token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"

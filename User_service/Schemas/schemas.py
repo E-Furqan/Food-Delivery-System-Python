@@ -12,7 +12,7 @@ class Role(BaseModel):
 
 
 class User(BaseModel):
-    user_id: Optional[int] = 1
+    user_id: Optional[int] = None
     full_name: str
     user_name: str
     email: str
