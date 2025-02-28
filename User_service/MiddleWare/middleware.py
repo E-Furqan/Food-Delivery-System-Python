@@ -2,12 +2,10 @@ from fastapi import Request, HTTPException, status
 import jwt
 
 from EnviornmentVariable import enVVar
-from Utils.utils import track_coverage
 
 SECRET_KEY = enVVar.SECRET_KEY
 ALGORITHM = enVVar.ALGORITHM
 
-@track_coverage
 def validate_token(request: Request):
     token = request.headers.get("Authorization")
 

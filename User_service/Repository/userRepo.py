@@ -5,10 +5,9 @@ from fastapi import HTTPException, status
 from Model import model
 from Schemas import schemas
 from Hashing.hash import Hash
-from decorators import track_coverage
 
-@track_coverage
-async def createUser(request: schemas.User, db: Session):
+
+def createUser(request: schemas.User, db: Session):
     try:
         role_type = [role.role_type for role in request.roles]
     except Exception as e:
@@ -40,7 +39,7 @@ async def createUser(request: schemas.User, db: Session):
     db.refresh(new_user)
     return new_user
 
-@track_coverage
+
 def fetchUser(id: int, db: Session):
     user = db.query(model.User).filter(model.User.user_id == id).first()
     if not user:
@@ -52,7 +51,7 @@ def fetchUser(id: int, db: Session):
 
     return schemas.User(**user_dict)
 
-@track_coverage
+
 def deleteUser(request: schemas.Credentials, db: Session):
     user = db.query(model.User).filter(model.User.email == request.email).first()
 
@@ -75,7 +74,7 @@ def deleteUser(request: schemas.Credentials, db: Session):
     return {"detail": f"User with email {request.email} has been successfully deleted."}
 
 
-@track_coverage
+
 def login(request: schemas.Credentials, db: Session):
     user = db.query(model.User).filter(model.User.email == request.email).first()
 
