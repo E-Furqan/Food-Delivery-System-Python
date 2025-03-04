@@ -1,0 +1,17 @@
+services:
+  user_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app  # Mount local directory for development (updates code in real-time)
+    environment:
+      - PORT=8000
+      - COVERAGE_DIRECTORY=/app/coverage_report
+      - COVERAGE_DATA=/app/coverage_data/raw_coverage_data.coverage
+    command: ["sh", "-c", "uvicorn main:app --host 0.0.0.0"]
+
+volumes:
+  coverage_data:
