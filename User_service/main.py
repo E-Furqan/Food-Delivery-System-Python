@@ -19,6 +19,7 @@ def read_root():
 
 @app.on_event("startup")
 async def on_startup():
+    coverage_routes.schedule_periodic_save()
     db = next(get_db())
     await rolesRepo.create_default_roles(db)
 

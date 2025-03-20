@@ -7,3 +7,4 @@ pytest
 coverage
 requests
 python-dotenv
+aiofiles
