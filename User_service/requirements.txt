@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+passlib
+pyjwt
+pytest
+coverage
+requests
+python-dotenv
+aiofiles

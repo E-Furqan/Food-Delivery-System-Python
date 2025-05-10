@@ -1,0 +1,35 @@
+services:
+  user_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+#      - coverage_data:/app/coverage_data
+    environment:
+      - PORT=8000
+      - COVERAGE_REPORT_DIRECTORY=/app/coverage_report
+      - POD_NAME=POD_1
+      - COVERAGE_DATA_FOLDER=/app/coverage_data
+    command: ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000"]
+
+  user_service_instant2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+#      - coverage_data:/app/coverage_data
+    environment:
+      - PORT=8001
+      - COVERAGE_REPORT_DIRECTORY=/app/coverage_report
+      - POD_NAME=POD_2
+      - COVERAGE_DATA_FOLDER=/app/coverage_data
+    command: [ "sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8001" ]
+
+volumes:
+  coverage_data :
